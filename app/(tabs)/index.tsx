@@ -1,98 +1,154 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Platform, StyleSheet } from "react-native";
+import { HelloWave } from "@/components/hello-wave";
+import { SafeAreaView } from "react-native-safe-area-context";
+import TopArtists from "@/components/TopArtistsList";
+import { LinearGradient } from "expo-linear-gradient";
+import { Link } from "expo-router";
+import TopTracksList from "@/components/TopTracksList";
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={styles.Container}>
+      <View style={styles.titleContainer}>
+        <View style={styles.greetingsContainer}>
+          <Text style={styles.text}>Good morning, David</Text>
+          <HelloWave />
+        </View>
+        <LinearGradient
+          style={styles.activeCircle}
+          colors={["#1DB954", "#8B5CF6"]}
+        >
+          <Ionicons name="person-circle" size={45} />
+        </LinearGradient>
+      </View>
+      <LinearGradient
+        colors={["#1DB954", "#8B5CF6"]}
+        style={styles.stepContainer}
+      >
+        <Text style={styles.text}>Your Music DNA</Text>
+        <Text style={styles.textSubtitle}>
+          Afrobeats <Ionicons name="flame" size={20} color="#cb2c2c" />
+        </Text>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <View style={styles.statsContainer}>
+          <View style={styles.statsGroup}>
+            <Text style={styles.textStats}>
+              <Ionicons name="musical-notes" size={15} color="white" /> 1,247
+              mins {"\n"} this week{" "}
+            </Text>
+          </View>
+          <View style={styles.statsGroup}>
+            <Text style={styles.textStats}>
+              <Ionicons name="flame" size={15} color="white" /> 23 days {"\n"}{" "}
+              streak
+            </Text>
+          </View>
+          <View style={styles.statsGroup}>
+            <Text style={styles.textStats}>
+              <Ionicons name="mic" size={15} color="white" /> 47 artists {"\n"}{" "}
+              this month
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
+
+      <View style={styles.TopArtistContainer}>
+        <Text style={styles.textArtist}>Top Artists This Month</Text>
+        <Text style={styles.textArtist}>See All</Text>
+      </View>
+      <View>
+        <TopArtists showPlays={true} />
+      </View>
+
+      <View style={styles.TopTracksContainer}>
+        <Text style={styles.textTrack}>Top Tracks This Month</Text>
+        <Text style={styles.textTrack}>See All</Text>
+      </View>
+
+      <View style={{ height: 300 }}>
+        <TopTracksList />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  Container: {
+    flex: 1,
+    padding: 8,
+  },
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  greetingsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+    width: "100%",
+    padding: 20,
+    gap: 10,
+    borderRadius: 20,
+    marginTop: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  text: {
+    fontWeight: "bold",
+    fontSize: 20,
+    color: "white",
+  },
+  textSubtitle: {
+    fontWeight: "bold",
+    fontSize: 15,
+    color: "white",
+  },
+  textStats: {
+    fontWeight: "bold",
+    fontSize: 10,
+    color: "white",
+  },
+  textArtist: {
+    fontWeight: "semibold",
+    fontSize: 15,
+    color: "white",
+  },
+  textTrack: {
+    fontWeight: "semibold",
+    fontSize: 15,
+    color: "white",
+  },
+  statsGroup: {
+    backgroundColor: "#7b5fc0",
+    padding: 10,
+    borderRadius: 10,
+    width: 100,
+  },
+  TopArtistContainer: {
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  TopTracksContainer: {
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  activeCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 999,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
