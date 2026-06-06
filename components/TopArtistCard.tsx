@@ -2,24 +2,66 @@ import {
   View,
   Text,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { type SpotifyArtist } from '@/hooks/use-Spotify-Data';
 
-export default function TopArtistsCard() {
+interface TopArtistsCardProps {
+  artists?: SpotifyArtist[];
+  loading?: boolean;
+}
+
+export default function TopArtistsCard({ artists = [], loading = false }: TopArtistsCardProps) {
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="small" color="#1DB954" />
+      </View>
+    );
+  }
+
+  // We need at least 3 artists for the podium
+  const top1 = artists[0];
+  const top2 = artists[1];
+  const top3 = artists[2];
+
+  if (!top1 || !top2 || !top3) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <Text style={styles.emptyText}>
+          Connect Spotify to see your top 3 artists!
+        </Text>
+      </View>
+    );
+  }
+
+  const getImageUrl = (artist: SpotifyArtist) =>
+    artist.images?.[1]?.url ?? artist.images?.[0]?.url;
+
+  const getGenre = (artist: SpotifyArtist) => {
+    const genre = artist.genres?.[0] ?? 'Music';
+    return genre.charAt(0).toUpperCase() + genre.slice(1);
+  };
+
   return (
     <View style={styles.container}>
-      {/* Artist #2 - Wizkid */}
+      {/* Artist #2 */}
       <View style={styles.artistWrapper}>
         <View style={styles.smallCircleWrapper}>
           <View style={styles.smallCircleGray}>
-            <Ionicons
-              name="musical-notes"
-              size={26}
-              color="#999"
-            />
+            {getImageUrl(top2) ? (
+              <Image
+                source={{ uri: getImageUrl(top2) }}
+                style={styles.circleImage}
+                contentFit="cover"
+              />
+            ) : (
+              <Ionicons name="musical-notes" size={26} color="#999" />
+            )}
           </View>
         </View>
 
@@ -27,16 +69,16 @@ export default function TopArtistsCard() {
           <Text style={styles.rankText}>2</Text>
         </View>
 
-        <Text style={styles.artistName}>
-          Wizkid
+        <Text style={styles.artistName} numberOfLines={1}>
+          {top2.name}
         </Text>
 
         <Text style={styles.genre}>
-          Afrobeats
+          {getGenre(top2)}
         </Text>
       </View>
 
-      {/* Artist #1 - Burna Boy (Active) */}
+      {/* Artist #1 (Active) */}
       <View style={styles.artistWrapperActive}>
         <Text style={styles.crown}>👑</Text>
 
@@ -48,11 +90,15 @@ export default function TopArtistsCard() {
             end={{ x: 1, y: 0 }}
           >
             <View style={styles.activeCircleInner}>
-              <Ionicons
-                name="mic"
-                size={32}
-                color="#aaa"
-              />
+              {getImageUrl(top1) ? (
+                <Image
+                  source={{ uri: getImageUrl(top1) }}
+                  style={styles.activeCircleImage}
+                  contentFit="cover"
+                />
+              ) : (
+                <Ionicons name="mic" size={32} color="#aaa" />
+              )}
             </View>
           </LinearGradient>
         </View>
@@ -61,24 +107,28 @@ export default function TopArtistsCard() {
           <Text style={styles.rankTextActive}>1</Text>
         </View>
 
-        <Text style={styles.activeArtistName}>
-          Burna Boy
+        <Text style={styles.activeArtistName} numberOfLines={1}>
+          {top1.name}
         </Text>
 
         <Text style={styles.activeGenre}>
-          Afrobeats
+          {getGenre(top1)}
         </Text>
       </View>
 
-      {/* Artist #3 - Tems */}
+      {/* Artist #3 */}
       <View style={styles.artistWrapper}>
         <View style={styles.smallCircleWrapper}>
           <View style={styles.smallCircleBrown}>
-            <Ionicons
-              name="headset"
-              size={26}
-              color="#8B6914"
-            />
+            {getImageUrl(top3) ? (
+              <Image
+                source={{ uri: getImageUrl(top3) }}
+                style={styles.circleImage}
+                contentFit="cover"
+              />
+            ) : (
+              <Ionicons name="headset" size={26} color="#8B6914" />
+            )}
           </View>
         </View>
 
@@ -86,12 +136,12 @@ export default function TopArtistsCard() {
           <Text style={styles.rankText}>3</Text>
         </View>
 
-        <Text style={styles.artistName}>
-          Tems
+        <Text style={styles.artistName} numberOfLines={1}>
+          {top3.name}
         </Text>
 
         <Text style={styles.genre}>
-          R&B
+          {getGenre(top3)}
         </Text>
       </View>
     </View>
@@ -107,6 +157,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
+  },
+
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 180,
+  },
+
+  emptyText: {
+    color: '#6b7280',
+    fontSize: 13,
+    textAlign: 'center',
   },
 
   /* ---- Side artist wrappers ---- */
@@ -138,6 +200,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a2a2a',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
 
   /* ---- #3 Brown ring circle ---- */
@@ -150,6 +213,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a2a2a',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  circleImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 999,
   },
 
   /* ---- #1 Active gradient circle ---- */
@@ -173,6 +243,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#6B7AF0',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  activeCircleImage: {
+    width: 82,
+    height: 82,
+    borderRadius: 999,
   },
 
   /* ---- Crown ---- */

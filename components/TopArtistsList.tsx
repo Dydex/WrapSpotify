@@ -1,25 +1,39 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
+import { Image } from "expo-image";
+import { type SpotifyArtist } from "@/hooks/use-Spotify-Data";
 
 interface TopArtistsProps {
+  artists?: SpotifyArtist[];
   horizontal?: boolean;
   showGenre?: boolean;
   showPlays?: boolean;
   showId?: boolean;
+  loading?: boolean;
 }
 
 export default function TopArtistsList({
+  artists = [],
   horizontal = true,
   showGenre = false,
   showPlays = false,
   showId = false,
+  loading = false,
 }: TopArtistsProps) {
-  const artists = [
-    { id: "01", name: "Drake", genre: "Hip-Hop", plays: 1200 },
-    { id: "02", name: "Asake", genre: "Afrobeats", plays: 900 },
-    { id: "03", name: "Rema", genre: "Afrobeats", plays: 800 },
-    { id: "04", name: "Tems", genre: "Alternative R&B", plays: 700 },
-    { id: "05", name: "Wizkid", genre: "Afrobeats", plays: 600 },
-  ];
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#1DB954" />
+      </View>
+    );
+  }
+
+  if (artists.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.emptyText}>No artists yet. Connect Spotify to see your top artists!</Text>
+      </View>
+    );
+  }
 
   return (
     <FlatList
@@ -29,24 +43,55 @@ export default function TopArtistsList({
       showsVerticalScrollIndicator={false}
       style={[styles.listContainer, !horizontal && styles.columnContainer]}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <View style={[styles.mainContainer, !horizontal && styles.columnItem]}>
-          {showId && <Text style={styles.idText}>{item.id}</Text>}
-          <View style={styles.imageContainer} />
-          <View style={!horizontal && styles.textContainer}>
-            <Text style={styles.artistText}>{item.name}</Text>
-            {showGenre && <Text style={styles.genreText}>{item.genre}</Text>}
-            {showPlays && (
-              <Text style={styles.playsText}>{item.plays} plays</Text>
+      renderItem={({ item, index }) => {
+        const rank = String(index + 1).padStart(2, '0');
+        const imageUrl = item.images?.[1]?.url ?? item.images?.[0]?.url;
+        const genre = item.genres?.[0] ?? 'Music';
+
+        return (
+          <View style={[styles.mainContainer, !horizontal && styles.columnItem]}>
+            {showId && <Text style={styles.idText}>{rank}</Text>}
+            {imageUrl ? (
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.imageContainer}
+                contentFit="cover"
+              />
+            ) : (
+              <View style={styles.imageContainer} />
             )}
+            <View style={!horizontal && styles.textContainer}>
+              <Text style={styles.artistText}>{item.name}</Text>
+              {showGenre && (
+                <Text style={styles.genreText}>
+                  {genre.charAt(0).toUpperCase() + genre.slice(1)}
+                </Text>
+              )}
+              {showPlays && (
+                <Text style={styles.playsText}>
+                  Popularity: {item.popularity}
+                </Text>
+              )}
+            </View>
           </View>
-        </View>
-      )}
+        );
+      }}
     />
   );
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    color: "#6b7280",
+    fontSize: 13,
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
   listContainer: {
     marginTop: 12,
   },
@@ -80,6 +125,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#444",
     marginBottom: 12,
     marginRight: 16,
+    overflow: "hidden",
   },
   artistText: {
     color: "white",

@@ -10,6 +10,8 @@ import {
 import { useState, useEffect, useRef } from "react";
 import TimeLines from "@/components/TimeLines";
 import TopAlbumsList from "@/components/TopAlbumsList";
+import { useSpotify } from "@/contexts/SpotifyContext";
+import { Image } from "expo-image";
 
 const { width } = Dimensions.get("window");
 
@@ -17,8 +19,6 @@ const GREEN = "#22c55e";
 const BG = "#0d1117";
 const CARD_BG = "#1a1b1cc7";
 const MUTED = "#6b7280";
-
-
 
 // ── Vinyl Disc ────────────────────────────────────────────────────────────────
 const VinylDisc = ({
@@ -104,15 +104,12 @@ const VinylDisc = ({
   );
 };
 
-// ── Album Row ─────────────────────────────────────────────────────────────────
-
-
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function AlbumsScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const heroFade = useRef(new Animated.Value(0)).current;
   const heroSlide = useRef(new Animated.Value(-20)).current;
-  
+  const { savedAlbums, loading, timeRange, setTimeRange } = useSpotify();
 
   useEffect(() => {
     Animated.parallel([
@@ -129,75 +126,83 @@ export default function AlbumsScreen() {
     ]).start();
   }, []);
 
-  
+  const topAlbum = savedAlbums[0]?.album;
+  const heroTitle = topAlbum?.name ?? "—";
+  const heroArtist = topAlbum?.artists?.map((a) => a.name).join(", ") ?? "—";
+  const heroAlbumArt = topAlbum?.images?.[1]?.url ?? topAlbum?.images?.[0]?.url;
+  const heroTracksCount = savedAlbums[0]?.tracksCount ?? 0;
+  const tracksText = `${heroTracksCount} ${heroTracksCount === 1 ? "track" : "tracks"} in top list`;
 
   return (
     <SafeAreaView style={styles.safe}>
-      
-        {/* Header */}
-        <Text style={styles.headerTitle}>Your Top Albums</Text>
+      {/* Header */}
+      <Text style={styles.headerTitle}>Your Top Albums</Text>
 
-        {/* Tabs */}
-        <TimeLines />
+      {/* Tabs */}
+      <TimeLines activeRange={timeRange} onRangeChange={setTimeRange} />
 
-        {/* Hero Card */}
-        <Animated.View
-          style={[
-            styles.heroCard,
-            { opacity: heroFade, transform: [{ translateY: heroSlide }] },
-          ]}
-        >
-        
-
-          {/* Album art area */}
-          <View style={styles.heroArtArea}>
-            {/* Back vinyl (shadow) */}
-            <View style={[styles.vinylBack]}>
-              <VinylDisc size={90} color="#1a1f2e" />
-            </View>
-            {/* Front album art card */}
-            <View style={styles.albumArtCard}>
+      {/* Hero Card */}
+      <Animated.View
+        style={[
+          styles.heroCard,
+          { opacity: heroFade, transform: [{ translateY: heroSlide }] },
+        ]}
+      >
+        {/* Album art area */}
+        <View style={styles.heroArtArea}>
+          {/* Back vinyl (shadow) */}
+          <View style={[styles.vinylBack]}>
+            <VinylDisc size={90} color="#1a1f2e" />
+          </View>
+          {/* Front album art card */}
+          <View style={styles.albumArtCard}>
+            {heroAlbumArt ? (
+              <Image
+                source={{ uri: heroAlbumArt }}
+                style={styles.albumArtImage}
+                contentFit="cover"
+              />
+            ) : (
               <View style={styles.albumArtInner}>
                 <VinylDisc size={52} color="#3b4a6b" spinning={isPlaying} />
               </View>
-            </View>
-          </View>
-
-          {/* Badge */}
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>#1 Most Played</Text>
-          </View>
-
-          <Text style={styles.heroTitle}>Love, Damini</Text>
-          <Text style={styles.heroArtist}>Burna Boy</Text>
-          <Text style={styles.heroPlays}>Played 23 times this month</Text>
-
-          {/* Play button */}
-          <TouchableOpacity
-            style={[styles.playBtn, isPlaying && styles.playBtnActive]}
-            onPress={() => setIsPlaying((p) => !p)}
-            activeOpacity={0.85}
-          >
-            {isPlaying ? (
-              <View style={styles.pauseIcon}>
-                <View style={styles.pauseBar} />
-                <View style={styles.pauseBar} />
-              </View>
-            ) : (
-              <View style={styles.playIcon} />
             )}
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Collection header */}
-        <Text style={styles.sectionTitle}>Your Collection</Text>
-
-        {/* Album list */}
-        <View style={{ height: 300 }} >
-            <TopAlbumsList />
+          </View>
         </View>
-        
-     
+
+        {/* Badge */}
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>#1 Top Album</Text>
+        </View>
+
+        <Text style={styles.heroTitle}>{heroTitle}</Text>
+        <Text style={styles.heroArtist}>{heroArtist}</Text>
+        <Text style={styles.heroPlays}>{tracksText}</Text>
+
+        {/* Play button */}
+        <TouchableOpacity
+          style={[styles.playBtn, isPlaying && styles.playBtnActive]}
+          onPress={() => setIsPlaying((p) => !p)}
+          activeOpacity={0.85}
+        >
+          {isPlaying ? (
+            <View style={styles.pauseIcon}>
+              <View style={styles.pauseBar} />
+              <View style={styles.pauseBar} />
+            </View>
+          ) : (
+            <View style={styles.playIcon} />
+          )}
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Collection header */}
+      <Text style={styles.sectionTitle}>Your Collection</Text>
+
+      {/* Album list */}
+      <View style={{ height: 300 }}>
+        <TopAlbumsList albums={savedAlbums} loading={loading} />
+      </View>
     </SafeAreaView>
   );
 }
@@ -207,10 +212,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     paddingHorizontal: 20,
-  },
- 
-  scrollContent: {
-    
   },
 
   headerTitle: {
@@ -222,34 +223,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  // Tabs
-  tabContainer: {
-    marginBottom: 20,
-  },
-  tabRow: {
-    flexDirection: "row",
-  },
-  tabBtn: {
-    width: 80,
-    paddingBottom: 8,
-  },
-  tabText: {
-    color: MUTED,
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  tabTextActive: {
-    color: GREEN,
-    fontWeight: "600",
-  },
-  tabIndicator: {
-    height: 2,
-    width: 48,
-    backgroundColor: GREEN,
-    borderRadius: 1,
-    marginTop: -2,
-  },
-
   // Hero
   heroCard: {
     backgroundColor: CARD_BG,
@@ -258,15 +231,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     overflow: "hidden",
     minHeight: 200,
-  },
-  heroBgCircle: {
-    position: "absolute",
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "#0f2d1a",
-    right: -40,
-    top: -40,
   },
   heroArtArea: {
     flexDirection: "row",
@@ -292,6 +256,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
+    overflow: "hidden",
+  },
+  albumArtImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 14,
   },
   albumArtInner: {
     alignItems: "center",
@@ -372,37 +342,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 12,
     letterSpacing: -0.2,
-  },
-
-  
-
-  // Bottom nav
-  bottomNav: {
-    flexDirection: "row",
-    backgroundColor: "#10141e",
-    borderTopWidth: 0.5,
-    borderTopColor: "#1e2533",
-    paddingTop: 10,
-    paddingBottom: 24,
-    justifyContent: "space-around",
-  },
-  navItem: {
-    alignItems: "center",
-    gap: 3,
-  },
-  navIcon: {
-    fontSize: 20,
-    opacity: 0.4,
-  },
-  navIconActive: {
-    opacity: 1,
-  },
-  navLabel: {
-    fontSize: 9,
-    color: "#4b5563",
-    fontWeight: "500",
-  },
-  navLabelActive: {
-    color: GREEN,
   },
 });

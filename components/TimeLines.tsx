@@ -1,24 +1,30 @@
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from "react-native"
 import { useState, useRef } from "react";
+import type { TimeRange } from "@/hooks/use-Spotify-Data";
 
-export default function TimeLines() {
-    const [activeTab, setActiveTab] = useState(0);
-    const tabIndicator = useRef(new Animated.Value(0)).current;
+interface TimeLinesProps {
+  activeRange?: TimeRange;
+  onRangeChange?: (range: TimeRange) => void;
+}
 
-    const TABS = [
-        '4 Weeks',
-        '6 Months',
-        'All Time'
-    ];
+const TABS: { label: string; value: TimeRange }[] = [
+  { label: '4 Weeks', value: 'short_term' },
+  { label: '6 Months', value: 'medium_term' },
+  { label: 'All Time', value: 'long_term' },
+];
+
+export default function TimeLines({ activeRange = 'short_term', onRangeChange }: TimeLinesProps) {
+    const activeIndex = TABS.findIndex((t) => t.value === activeRange);
+    const tabIndicator = useRef(new Animated.Value(activeIndex >= 0 ? activeIndex : 0)).current;
 
      const handleTabPress = (i: number) => {
-        setActiveTab(i);
         Animated.spring(tabIndicator, {
           toValue: i,
           useNativeDriver: true,
           tension: 80,
           friction: 10,
         }).start();
+        onRangeChange?.(TABS[i].value);
       };
 
       const TAB_WIDTH = 80;
@@ -33,8 +39,8 @@ export default function TimeLines() {
                         activeOpacity={0.7}
                         style={styles.tabBtn}
                       >
-                        <Text style={[styles.tabText, activeTab === i && styles.tabTextActive]}>
-                          {tab}
+                        <Text style={[styles.tabText, tab.value === activeRange && styles.tabTextActive]}>
+                          {tab.label}
                         </Text>
                       </TouchableOpacity>
                     ))}

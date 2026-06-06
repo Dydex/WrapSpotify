@@ -1,10 +1,12 @@
-import { FlatList, Text, View, StyleSheet, Animated } from "react-native";
+import { FlatList, Text, View, StyleSheet, Animated, ActivityIndicator } from "react-native";
 import { useEffect, useRef } from "react";
-import {tracks} from "@/constants/tracks";
-
+import { Image } from "expo-image";
+import { type SpotifyTrack, formatDuration } from "@/hooks/use-Spotify-Data";
 
 interface TopTracksProps {
+  tracks?: SpotifyTrack[];
   showPlays?: boolean;
+  loading?: boolean;
 }
 
 const TrackRow = ({
@@ -12,7 +14,7 @@ const TrackRow = ({
   index,
   showPlays,
 }: {
-  item: (typeof tracks)[0];
+  item: SpotifyTrack;
   index: number;
   showPlays?: boolean;
 }) => {
@@ -36,6 +38,11 @@ const TrackRow = ({
     ]).start();
   }, []);
 
+  const rank = String(index + 1).padStart(2, '0');
+  const artistNames = item.artists.map((a) => a.name).join(', ');
+  const duration = formatDuration(item.duration_ms);
+  const albumArt = item.album?.images?.[2]?.url ?? item.album?.images?.[0]?.url;
+
   return (
     <Animated.View
       style={[
@@ -44,31 +51,58 @@ const TrackRow = ({
       ]}
     >
       <View>
-        <Text style={styles.trackRank}>{item.rank}</Text>
+        <Text style={styles.trackRank}>{rank}</Text>
       </View>
 
       <View style={styles.trackIcon}>
-        <Text style={{ fontSize: 18 }}>{item.emoji}</Text>
+        {albumArt ? (
+          <Image
+            source={{ uri: albumArt }}
+            style={styles.trackImage}
+            contentFit="cover"
+          />
+        ) : (
+          <Text style={{ fontSize: 18 }}>🎧</Text>
+        )}
       </View>
       <View style={styles.trackInfo}>
         <Text style={styles.trackName} numberOfLines={1}>
-          {item.track}
+          {item.name}
         </Text>
         <Text style={styles.trackArtist}>
-          {item.artist} · {item.duration}
+          {artistNames} · {duration}
         </Text>
       </View>
       {showPlays && (
         <View style={styles.playsBadge}>
-          <Text style={styles.playsText}>{item.plays} plays</Text>
+          <Text style={styles.playsText}>#{index + 1}</Text>
         </View>
       )}
     </Animated.View>
   );
 };
+
 export default function TopTracksList({
+  tracks = [],
   showPlays,
+  loading = false,
 }: TopTracksProps) {
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#22c55e" />
+      </View>
+    );
+  }
+
+  if (tracks.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.emptyText}>No tracks yet. Connect Spotify to see your top tracks!</Text>
+      </View>
+    );
+  }
+
   return (
     <FlatList
       data={tracks}
@@ -90,38 +124,17 @@ const GREEN = "#22c55e";
 const MUTED = "#6b7280";
 
 const styles = StyleSheet.create({
-  listContainer: {
-    marginTop: 16,
-    marginBottom: 46,
-  },
-  mainContainer: {
-    gap: 12,
-    flexDirection: "row",
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 40,
   },
-  imageContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    backgroundColor: "#444",
-    marginBottom: 12,
-  },
-  trackText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  artistText: {
-    color: "white",
-    fontSize: 14,
-  },
-  artistTextId: {
-    color: "#1DB954",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  textContainer: {
-    flexDirection: "column",
+  emptyText: {
+    color: MUTED,
+    fontSize: 13,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
   trackIcon: {
     width: 42,
@@ -130,6 +143,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a2030",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  trackImage: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
   },
   trackRank: {
     color: GREEN,
@@ -170,5 +189,4 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: "#1e2533",
   },
-  
 });

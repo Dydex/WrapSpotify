@@ -9,6 +9,9 @@ import {
 import TimeLines from "@/components/TimeLines";
 import TopTracksList from "@/components/TopTracksList";
 import { useState, useEffect, useRef } from "react";
+import { useSpotify } from "@/contexts/SpotifyContext";
+import { Image } from "expo-image";
+import { formatDuration } from "@/hooks/use-Spotify-Data";
 
 const WAVEFORM_HEIGHTS = [
   6, 10, 14, 18, 22, 26, 28, 30, 28, 32, 30, 26, 28, 24, 20, 22, 18, 24, 20, 16,
@@ -74,6 +77,7 @@ export default function TracksScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const heroFade = useRef(new Animated.Value(0)).current;
   const heroSlide = useRef(new Animated.Value(-20)).current;
+  const { topTracks, loading, timeRange, setTimeRange } = useSpotify();
 
   useEffect(() => {
     Animated.parallel([
@@ -90,13 +94,18 @@ export default function TracksScreen() {
     ]).start();
   }, []);
 
+  const topTrack = topTracks[0];
+  const heroTitle = topTrack?.name ?? "—";
+  const heroArtist = topTrack?.artists?.map((a) => a.name).join(", ") ?? "—";
+  const heroAlbumArt = topTrack?.album?.images?.[1]?.url ?? topTrack?.album?.images?.[0]?.url;
+
   return (
     <SafeAreaView style={styles.Container}>
       <View>
         <Text style={styles.text}>Your Top Tracks</Text>
       </View>
 
-      <TimeLines />
+      <TimeLines activeRange={timeRange} onRangeChange={setTimeRange} />
 
       <Animated.View
         style={[
@@ -104,15 +113,26 @@ export default function TracksScreen() {
           { opacity: heroFade, transform: [{ translateY: heroSlide }] },
         ]}
       >
-
         <View style={styles.badge}>
           <Text style={styles.badgeEmoji}>🏆</Text>
           <Text style={styles.badgeText}>Your #1 Track</Text>
         </View>
 
-        <Text style={styles.heroTitle}>City Boys</Text>
-        <Text style={styles.heroArtist}>Burna Boy</Text>
-        <Text style={styles.heroPlays}>Played 47 times this month</Text>
+        {heroAlbumArt && (
+          <Image
+            source={{ uri: heroAlbumArt }}
+            style={styles.heroAlbumArt}
+            contentFit="cover"
+          />
+        )}
+
+        <Text style={styles.heroTitle}>{heroTitle}</Text>
+        <Text style={styles.heroArtist}>{heroArtist}</Text>
+        {topTrack && (
+          <Text style={styles.heroPlays}>
+            {formatDuration(topTrack.duration_ms)} · Popularity {topTrack.popularity}
+          </Text>
+        )}
 
         <Waveform isPlaying={isPlaying} />
 
@@ -133,7 +153,11 @@ export default function TracksScreen() {
       </Animated.View>
 
       <View style={{ height: 410 }}>
-        <TopTracksList showPlays={true} />
+        <TopTracksList
+          tracks={topTracks}
+          showPlays={true}
+          loading={loading}
+        />
       </View>
     </SafeAreaView>
   );
@@ -174,14 +198,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: "hidden",
   },
-  heroBgCircle: {
-    position: "absolute",
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "#0f2d1a",
-    right: -30,
-    top: -30,
+  heroAlbumArt: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   badge: {
     flexDirection: "row",

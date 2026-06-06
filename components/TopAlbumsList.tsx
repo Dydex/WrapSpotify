@@ -1,18 +1,23 @@
-import { ALBUMS } from "@/constants/albums";
 import { useRef } from "react";
-import { View, FlatList, StyleSheet, Animated, Text } from "react-native";
-import {useEffect} from "react";
+import { View, FlatList, StyleSheet, Animated, Text, ActivityIndicator } from "react-native";
+import { useEffect } from "react";
+import { Image } from "expo-image";
+import { type SpotifySavedAlbum } from "@/hooks/use-Spotify-Data";
+
+interface TopAlbumsProps {
+  albums?: SpotifySavedAlbum[];
+  loading?: boolean;
+}
 
 const AlbumRow = ({
   item,
   index,
 }: {
-  item: (typeof ALBUMS)[0];
+  item: SpotifySavedAlbum;
   index: number;
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
-  const barWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -28,16 +33,14 @@ const AlbumRow = ({
         delay: index * 80,
         useNativeDriver: true,
       }),
-      Animated.timing(barWidth, {
-        toValue: item.plays,
-        duration: 600,
-        delay: index * 80 + 200,
-        useNativeDriver: false,
-      }),
     ]).start();
   }, []);
 
-  const maxPlays = 18;
+  const album = item.album;
+  const rank = String(index + 1).padStart(2, '0');
+  const artistNames = album.artists.map((a) => a.name).join(', ');
+  const year = album.release_date?.substring(0, 4) ?? '';
+  const albumArt = album.images?.[2]?.url ?? album.images?.[1]?.url ?? album.images?.[0]?.url;
 
   return (
     <Animated.View
@@ -46,57 +49,79 @@ const AlbumRow = ({
         { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
       ]}
     >
-      <Text style={styles.albumRank}>{item.rank}</Text>
+      <Text style={styles.albumRank}>{rank}</Text>
 
       <View style={styles.albumIconWrap}>
-        <Text style={{ fontSize: 20 }}>🎵</Text>
+        {albumArt ? (
+          <Image
+            source={{ uri: albumArt }}
+            style={styles.albumImage}
+            contentFit="cover"
+          />
+        ) : (
+          <Text style={{ fontSize: 20 }}>🎵</Text>
+        )}
       </View>
 
       <View style={styles.albumInfo}>
         <Text style={styles.albumTitle} numberOfLines={1}>
-          {item.title}
+          {album.name}
         </Text>
-        <Text style={styles.albumArtist}>{item.artist}</Text>
-        <Text style={styles.albumYear}>{item.year}</Text>
-        {/* Progress bar */}
-        <View style={styles.barTrack}>
-          <Animated.View
-            style={[
-              styles.barFill,
-              {
-                width: barWidth.interpolate({
-                  inputRange: [0, maxPlays],
-                  outputRange: ["0%", "100%"],
-                }),
-              },
-            ]}
-          />
-        </View>
+        <Text style={styles.albumArtist}>{artistNames}</Text>
+        <Text style={styles.albumYear}>{year}</Text>
       </View>
 
-      <Text style={styles.albumPlays}>{item.plays} plays</Text>
+      <Text style={styles.albumTracks}>
+        {item.tracksCount ?? 1} { (item.tracksCount ?? 1) === 1 ? 'track' : 'tracks' }
+      </Text>
     </Animated.View>
   );
 };
 
-export default function TopAlbumsList() {
+export default function TopAlbumsList({ albums = [], loading = false }: TopAlbumsProps) {
+  if (loading) {
     return (
-       
-          <FlatList
-                    style={styles.albumList}
-                    data={ALBUMS}
-                    renderItem={({ item, index }) => <AlbumRow item={item} index={index} />}
-                    keyExtractor={(item) => item.id}
-                  />  
-    
-    )
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#22c55e" />
+      </View>
+    );
+  }
+
+  if (albums.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.emptyText}>No albums yet. Connect Spotify to see your saved albums!</Text>
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      style={styles.albumList}
+      data={albums}
+      renderItem={({ item, index }) => <AlbumRow item={item} index={index} />}
+      keyExtractor={(item) => item.album.id}
+    />
+  );
 }
 
 const GREEN = "#22c55e";
 const MUTED = "#6b7280";
 
 const styles = StyleSheet.create({
-     albumList: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    color: MUTED,
+    fontSize: 13,
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
+  albumList: {
     gap: 0,
   },
   albumRow: {
@@ -120,6 +145,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a2030",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  albumImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
   },
   albumInfo: {
     flex: 1,
@@ -139,24 +170,12 @@ const styles = StyleSheet.create({
   albumYear: {
     color: "#374151",
     fontSize: 10,
-    marginBottom: 5,
   },
-  barTrack: {
-    height: 3,
-    backgroundColor: "#1e2533",
-    borderRadius: 2,
-    overflow: "hidden",
-  },
-  barFill: {
-    height: 3,
-    backgroundColor: GREEN,
-    borderRadius: 2,
-  },
-  albumPlays: {
+  albumTracks: {
     color: GREEN,
     fontSize: 11,
     fontWeight: "700",
     minWidth: 50,
     textAlign: "right",
   },
-})
+});
