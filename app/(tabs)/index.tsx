@@ -18,6 +18,7 @@ export default function HomeScreen() {
     userProfile,
     loading,
     redirectUri,
+    ready,
   } = useSpotify();
 
   // Show redirect URI as an Alert popup once so user can copy it
@@ -68,8 +69,9 @@ export default function HomeScreen() {
             Connect your Spotify account to see your listening stats
           </Text>
           <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => promptAsync()}
+            style={[styles.loginButton, !ready && styles.loginButtonDisabled]}
+            onPress={() => ready && promptAsync()}
+            disabled={!ready}
             activeOpacity={0.85}
           >
             <Ionicons name="musical-note" size={20} color="#1DB954" />
@@ -296,5 +298,8 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 999,
+  },
+  loginButtonDisabled: {
+    opacity: 0.5,
   },
 });

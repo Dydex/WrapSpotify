@@ -109,7 +109,7 @@ export default function AlbumsScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const heroFade = useRef(new Animated.Value(0)).current;
   const heroSlide = useRef(new Animated.Value(-20)).current;
-  const { savedAlbums, loading, timeRange, setTimeRange } = useSpotify();
+  const { topAlbums, loading, timeRange, setTimeRange } = useSpotify();
 
   useEffect(() => {
     Animated.parallel([
@@ -126,11 +126,11 @@ export default function AlbumsScreen() {
     ]).start();
   }, []);
 
-  const topAlbum = savedAlbums[0]?.album;
+  const topAlbum = topAlbums[0]?.album;
   const heroTitle = topAlbum?.name ?? "—";
   const heroArtist = topAlbum?.artists?.map((a) => a.name).join(", ") ?? "—";
   const heroAlbumArt = topAlbum?.images?.[1]?.url ?? topAlbum?.images?.[0]?.url;
-  const heroTracksCount = savedAlbums[0]?.tracksCount ?? 0;
+  const heroTracksCount = topAlbums[0]?.tracksCount ?? 0;
   const tracksText = `${heroTracksCount} ${heroTracksCount === 1 ? "track" : "tracks"} in top list`;
 
   return (
@@ -201,7 +201,7 @@ export default function AlbumsScreen() {
 
       {/* Album list */}
       <View style={{ height: 300 }}>
-        <TopAlbumsList albums={savedAlbums} loading={loading} />
+        <TopAlbumsList albums={topAlbums} loading={loading} />
       </View>
     </SafeAreaView>
   );

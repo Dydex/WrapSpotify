@@ -6,16 +6,18 @@ interface SpotifyContextValue extends SpotifyData {
   token: string | null;
   promptAsync: () => void;
   redirectUri: string;
+  ready: boolean;
+  logout: () => void;
 }
 
 const SpotifyContext = createContext<SpotifyContextValue | null>(null);
 
 export function SpotifyProvider({ children }: { children: ReactNode }) {
-  const { token, promptAsync, redirectUri } = useSpotifyAuth();
+  const { token, promptAsync, redirectUri, ready, logout } = useSpotifyAuth();
   const spotifyData = useSpotifyData(token);
 
   return (
-    <SpotifyContext.Provider value={{ ...spotifyData, token, promptAsync, redirectUri }}>
+    <SpotifyContext.Provider value={{ ...spotifyData, token, promptAsync, redirectUri, ready, logout }}>
       {children}
     </SpotifyContext.Provider>
   );

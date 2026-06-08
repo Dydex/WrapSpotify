@@ -2,10 +2,10 @@ import { useRef } from "react";
 import { View, FlatList, StyleSheet, Animated, Text, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
 import { Image } from "expo-image";
-import { type SpotifySavedAlbum } from "@/hooks/use-Spotify-Data";
+import { type SpotifyDerivedAlbum } from "@/hooks/use-Spotify-Data";
 
 interface TopAlbumsProps {
-  albums?: SpotifySavedAlbum[];
+  albums?: SpotifyDerivedAlbum[];
   loading?: boolean;
 }
 
@@ -13,7 +13,7 @@ const AlbumRow = ({
   item,
   index,
 }: {
-  item: SpotifySavedAlbum;
+  item: SpotifyDerivedAlbum;
   index: number;
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;

@@ -5,7 +5,11 @@ import { Platform } from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const CLIENT_ID = 'ea76e808a7b6479381f494d17648bea1';
+const CLIENT_ID = process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID || '';
+
+if (!CLIENT_ID) {
+  console.warn('Warning: EXPO_PUBLIC_SPOTIFY_CLIENT_ID is not defined in the environment variables!');
+}
 
 // Platform-specific redirect URIs:
 // - Web: http://localhost:8081 (Spotify allows http://localhost for dev)
@@ -27,6 +31,20 @@ const SCOPES = [
 
 export function useSpotifyAuth() {
   const [token, setToken] = useState<string | null>(null);
+
+  // Load token on mount
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = window.localStorage.getItem('spotify_token');
+        if (saved) {
+          setToken(saved);
+        }
+      }
+    } catch (e) {
+      console.warn('LocalStorage read error:', e);
+    }
+  }, []);
 
   const discovery = {
     authorizationEndpoint: 'https://accounts.spotify.com/authorize',
@@ -67,6 +85,13 @@ export function useSpotifyAuth() {
       const data = await res.json();
       if (data.access_token) {
         setToken(data.access_token);
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem('spotify_token', data.access_token);
+          }
+        } catch (e) {
+          console.warn('LocalStorage write error:', e);
+        }
       } else {
         console.error('Token exchange failed:', data);
       }
@@ -75,5 +100,16 @@ export function useSpotifyAuth() {
     }
   };
 
-  return { token, promptAsync, redirectUri: REDIRECT_URI };
+  const logout = () => {
+    setToken(null);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('spotify_token');
+      }
+    } catch (e) {
+      console.warn('LocalStorage remove error:', e);
+    }
+  };
+
+  return { token, promptAsync, redirectUri: REDIRECT_URI, ready: !!request, logout };
 }

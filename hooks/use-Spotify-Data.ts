@@ -39,7 +39,7 @@ export interface SpotifyTrack {
   external_urls: { spotify: string };
 }
 
-export interface SpotifySavedAlbum {
+export interface SpotifyDerivedAlbum {
   added_at: string;
   album: {
     id: string;
@@ -67,7 +67,7 @@ export interface SpotifyData {
   // Data
   topTracks: SpotifyTrack[];
   topArtists: SpotifyArtist[];
-  savedAlbums: SpotifySavedAlbum[];
+  topAlbums: SpotifyDerivedAlbum[];
   userProfile: SpotifyUserProfile | null;
 
   // State
@@ -91,7 +91,7 @@ export function formatDuration(ms: number): string {
 export function useSpotifyData(token: string | null): SpotifyData {
   const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
   const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([]);
-  const [savedAlbums, setSavedAlbums] = useState<SpotifySavedAlbum[]>([]);
+  const [topAlbums, setTopAlbums] = useState<SpotifyDerivedAlbum[]>([]);
   const [userProfile, setUserProfile] = useState<SpotifyUserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +102,7 @@ export function useSpotifyData(token: string | null): SpotifyData {
   // Derive top albums from topTracks whenever topTracks changes
   useEffect(() => {
     if (topTracks.length === 0) {
-      setSavedAlbums([]);
+      setTopAlbums([]);
       return;
     }
 
@@ -120,7 +120,7 @@ export function useSpotifyData(token: string | null): SpotifyData {
       albumMap[albumId].count += 1;
     });
 
-    const derivedAlbums: SpotifySavedAlbum[] = Object.values(albumMap)
+    const derivedAlbums: SpotifyDerivedAlbum[] = Object.values(albumMap)
       .sort((a, b) => b.count - a.count)
       .map((item) => ({
         added_at: new Date().toISOString(),
@@ -136,7 +136,7 @@ export function useSpotifyData(token: string | null): SpotifyData {
         tracksCount: item.count,
       }));
 
-    setSavedAlbums(derivedAlbums);
+    setTopAlbums(derivedAlbums);
   }, [topTracks]);
 
   // ── Individual fetchers ─────────────────────────────────────────────────
@@ -203,7 +203,7 @@ export function useSpotifyData(token: string | null): SpotifyData {
   return {
     topTracks,
     topArtists,
-    savedAlbums,
+    topAlbums,
     userProfile,
     loading,
     error,
