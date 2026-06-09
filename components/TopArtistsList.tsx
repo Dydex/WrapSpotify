@@ -30,7 +30,7 @@ export default function TopArtistsList({
   if (artists.length === 0) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.emptyText}>No artists yet. Connect Spotify to see your top artists!</Text>
+        <Text style={styles.emptyText}>No top artists available yet.</Text>
       </View>
     );
   }
@@ -65,11 +65,6 @@ export default function TopArtistsList({
               {showGenre && (
                 <Text style={styles.genreText}>
                   {genre.charAt(0).toUpperCase() + genre.slice(1)}
-                </Text>
-              )}
-              {showPlays && (
-                <Text style={styles.playsText}>
-                  Popularity: {item.popularity}
                 </Text>
               )}
             </View>

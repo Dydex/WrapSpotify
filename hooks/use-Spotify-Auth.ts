@@ -13,14 +13,14 @@ if (!CLIENT_ID) {
 
 // Platform-specific redirect URIs:
 // - Web: http://localhost:8081 (Spotify allows http://localhost for dev)
-// - Native dev build: statsspotify://callback (custom scheme)
+// - Native dev build: wrapspotify://callback (custom scheme)
 //
 // ADD BOTH to Spotify Dashboard → Redirect URIs:
 //   http://localhost:8081
-//   statsspotify://callback
+//   wrapspotify://callback
 const REDIRECT_URI = Platform.select({
   web: 'http://127.0.0.1:8081',
-  default: 'statsspotify://callback',
+  default: 'wrapspotify://callback',
 })!;
 
 const SCOPES = [
@@ -31,6 +31,8 @@ const SCOPES = [
 
 export function useSpotifyAuth() {
   const [token, setToken] = useState<string | null>(null);
+
+  const [isExchanging, setIsExchanging] = useState(false);
 
   // Load token on mount
   useEffect(() => {
@@ -65,6 +67,7 @@ export function useSpotifyAuth() {
   useEffect(() => {
     if (response?.type === 'success') {
       const { code } = response.params;
+      setIsExchanging(true);
       exchangeCode(code);
     }
   }, [response]);
@@ -97,6 +100,8 @@ export function useSpotifyAuth() {
       }
     } catch (err) {
       console.error('Token exchange error:', err);
+    } finally {
+      setIsExchanging(false);
     }
   };
 
@@ -111,5 +116,5 @@ export function useSpotifyAuth() {
     }
   };
 
-  return { token, promptAsync, redirectUri: REDIRECT_URI, ready: !!request, logout };
+  return { token, promptAsync, redirectUri: REDIRECT_URI, ready: !!request, logout, isExchanging };
 }

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { HelloWave } from "@/components/hello-wave";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TopArtists from "@/components/TopArtistsList";
@@ -8,31 +8,15 @@ import TopTracksList from "@/components/TopTracksList";
 import { useSpotify } from "@/contexts/SpotifyContext";
 import { Image } from "expo-image";
 import { useEffect, useRef } from "react";
+import { router } from "expo-router";
 
 export default function HomeScreen() {
   const {
-    token,
-    promptAsync,
     topTracks,
     topArtists,
     userProfile,
     loading,
-    redirectUri,
-    ready,
   } = useSpotify();
-
-  // Show redirect URI as an Alert popup once so user can copy it
-  const alertShown = useRef(false);
-  useEffect(() => {
-    if (!token && !alertShown.current) {
-      alertShown.current = true;
-      Alert.alert(
-        "Spotify Redirect URI",
-        `Add this exact URI to your Spotify Developer Dashboard:\n\n${redirectUri}`,
-        [{ text: "OK" }]
-      );
-    }
-  }, [token, redirectUri]);
 
   // Derive greeting based on time of day
   const hour = new Date().getHours();
@@ -55,42 +39,6 @@ export default function HomeScreen() {
   const topGenreDisplay =
     topGenre.charAt(0).toUpperCase() + topGenre.slice(1);
 
-  // If not logged in, show login prompt
-  if (!token) {
-    return (
-      <SafeAreaView style={[styles.Container, styles.loginContainer]}>
-        <LinearGradient
-          colors={["#1DB954", "#8B5CF6"]}
-          style={styles.loginCard}
-        >
-          <Ionicons name="musical-notes" size={60} color="white" />
-          <Text style={styles.loginTitle}>StatsSpotify</Text>
-          <Text style={styles.loginSubtitle}>
-            Connect your Spotify account to see your listening stats
-          </Text>
-          <TouchableOpacity
-            style={[styles.loginButton, !ready && styles.loginButtonDisabled]}
-            onPress={() => ready && promptAsync()}
-            disabled={!ready}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="musical-note" size={20} color="#1DB954" />
-            <Text style={styles.loginButtonText}>Connect with Spotify</Text>
-          </TouchableOpacity>
-
-          <View style={{ marginTop: 20, backgroundColor: 'rgba(0,0,0,0.3)', padding: 12, borderRadius: 12, width: '100%' }}>
-            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, textAlign: 'center', marginBottom: 6 }}>
-              Add this exact URI to your Spotify Dashboard → Redirect URIs:
-            </Text>
-            <Text selectable style={{ color: 'white', fontSize: 12, fontWeight: 'bold', textAlign: 'center' }}>
-              {redirectUri}
-            </Text>
-          </View>
-        </LinearGradient>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.Container}>
       <View style={styles.titleContainer}>
@@ -102,7 +50,7 @@ export default function HomeScreen() {
         </View>
         <LinearGradient
           style={styles.activeCircle}
-          colors={["#1DB954", "#8B5CF6"]}
+          colors={["#FF5A09", "#8B5CF6"]}
         >
           {profileImage ? (
             <Image
@@ -117,7 +65,7 @@ export default function HomeScreen() {
       </View>
 
       <LinearGradient
-        colors={["#1DB954", "#8B5CF6"]}
+        colors={["#FF5A09", "#8B5CF6"]}
         style={styles.stepContainer}
       >
         <Text style={styles.text}>Your Music DNA</Text>
@@ -153,7 +101,9 @@ export default function HomeScreen() {
 
       <View style={styles.TopArtistContainer}>
         <Text style={styles.textArtist}>Top Artists This Month</Text>
-        <Text style={styles.textArtist}>See All</Text>
+        <TouchableOpacity onPress={() => router.push('/artists')} activeOpacity={0.7}>
+          <Text style={styles.textArtistLink}>See All</Text>
+        </TouchableOpacity>
       </View>
       <View>
         <TopArtists
@@ -165,7 +115,9 @@ export default function HomeScreen() {
 
       <View style={styles.TopTracksContainer}>
         <Text style={styles.textTrack}>Top Tracks This Month</Text>
-        <Text style={styles.textTrack}>See All</Text>
+        <TouchableOpacity onPress={() => router.push('/tracks')} activeOpacity={0.7}>
+          <Text style={styles.textTrackLink}>See All</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={{ height: 300 }}>
@@ -301,5 +253,15 @@ const styles = StyleSheet.create({
   },
   loginButtonDisabled: {
     opacity: 0.5,
+  },
+  textArtistLink: {
+    fontWeight: "600",
+    fontSize: 13,
+    color: "#8B5CF6",
+  },
+  textTrackLink: {
+    fontWeight: "600",
+    fontSize: 13,
+    color: "#8B5CF6",
   },
 });

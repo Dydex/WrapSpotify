@@ -70,10 +70,6 @@ const AlbumRow = ({
         <Text style={styles.albumArtist}>{artistNames}</Text>
         <Text style={styles.albumYear}>{year}</Text>
       </View>
-
-      <Text style={styles.albumTracks}>
-        {item.tracksCount ?? 1} { (item.tracksCount ?? 1) === 1 ? 'track' : 'tracks' }
-      </Text>
     </Animated.View>
   );
 };
@@ -90,7 +86,7 @@ export default function TopAlbumsList({ albums = [], loading = false }: TopAlbum
   if (albums.length === 0) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.emptyText}>No albums yet. Connect Spotify to see your saved albums!</Text>
+        <Text style={styles.emptyText}>No top albums available yet.</Text>
       </View>
     );
   }
@@ -105,7 +101,7 @@ export default function TopAlbumsList({ albums = [], loading = false }: TopAlbum
   );
 }
 
-const GREEN = "#22c55e";
+const GREEN = "#8B5CF6";
 const MUTED = "#6b7280";
 
 const styles = StyleSheet.create({

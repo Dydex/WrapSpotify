@@ -18,7 +18,7 @@ const GENRE_COLORS = ["#1DB954", "#8B5CF6", "#3B82F6", "#EC4899", "#4B5563"];
 const GENRE_EMOJIS = ["🔥", "🎤", "💙", "✨", "🎵"];
 
 export default function GenresScreen() {
-  const { topTracks, topArtists, loading, timeRange, setTimeRange, token, promptAsync, ready } = useSpotify();
+  const { topTracks, topArtists, loading, timeRange, setTimeRange } = useSpotify();
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -37,32 +37,6 @@ export default function GenresScreen() {
       }),
     ]).start();
   }, [timeRange]);
-
-  if (!token) {
-    return (
-      <SafeAreaView style={[styles.safe, { justifyContent: "center", alignItems: "center", padding: 20 }]}>
-        <Ionicons name="lock-closed-outline" size={48} color="#6b7280" style={{ marginBottom: 16 }} />
-        <Text style={{ color: "white", fontSize: 18, fontWeight: "bold", textAlign: "center", marginBottom: 8 }}>
-          Spotify Connection Required
-        </Text>
-        <Text style={{ color: "#6b7280", fontSize: 14, textAlign: "center", paddingHorizontal: 30, marginBottom: 24 }}>
-          Please connect your Spotify account to see your music taste stats.
-        </Text>
-        <TouchableOpacity
-          style={[
-            styles.loginButton,
-            !ready && styles.loginButtonDisabled
-          ]}
-          onPress={() => ready && promptAsync()}
-          disabled={!ready}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="musical-note" size={20} color="white" />
-          <Text style={{ color: "white", fontWeight: "700" }}>Connect Spotify</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
 
   // Create a map of artist ID to genres
   const artistGenreMap: Record<string, string[]> = {};

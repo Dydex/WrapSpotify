@@ -98,7 +98,7 @@ export default function TopTracksList({
   if (tracks.length === 0) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.emptyText}>No tracks yet. Connect Spotify to see your top tracks!</Text>
+        <Text style={styles.emptyText}>No top tracks available yet.</Text>
       </View>
     );
   }

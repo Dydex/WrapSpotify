@@ -8,73 +8,13 @@ import {
 } from "react-native";
 import TimeLines from "@/components/TimeLines";
 import TopTracksList from "@/components/TopTracksList";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useSpotify } from "@/contexts/SpotifyContext";
 import { Image } from "expo-image";
 import { formatDuration } from "@/hooks/use-Spotify-Data";
 
-const WAVEFORM_HEIGHTS = [
-  6, 10, 14, 18, 22, 26, 28, 30, 28, 32, 30, 26, 28, 24, 20, 22, 18, 24, 20, 16,
-  18, 22, 26, 24, 20, 16, 14, 18, 22, 18, 14, 10, 12, 8, 6, 10, 14, 18,
-];
-const PLAYED_INDEX = 22;
-
-// ── Waveform ──────────────────────────────────────────────────────────────────
-const Waveform = ({ isPlaying }: { isPlaying: boolean }) => {
-  const animations = useRef(
-    WAVEFORM_HEIGHTS.map(() => new Animated.Value(1)),
-  ).current;
-
-  useEffect(() => {
-    if (!isPlaying) {
-      animations.forEach((anim) => anim.setValue(1));
-      return;
-    }
-    const animate = () => {
-      const anims = animations.slice(0, PLAYED_INDEX + 1).map((anim) =>
-        Animated.sequence([
-          Animated.timing(anim, {
-            toValue: 0.4 + Math.random() * 0.6,
-            duration: 150 + Math.random() * 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim, {
-            toValue: 1,
-            duration: 150 + Math.random() * 200,
-            useNativeDriver: true,
-          }),
-        ]),
-      );
-      Animated.stagger(20, anims).start(() => {
-        if (isPlaying) animate();
-      });
-    };
-    animate();
-  }, [isPlaying]);
-
-  return (
-    <View style={styles.waveform}>
-      {WAVEFORM_HEIGHTS.map((h, i) => {
-        const isActive = i <= PLAYED_INDEX;
-        return (
-          <Animated.View
-            key={i}
-            style={[
-              styles.waveBar,
-              { height: h, opacity: isActive ? 1 : 0.2 },
-              isActive &&
-                isPlaying && { transform: [{ scaleY: animations[i] }] },
-            ]}
-          />
-        );
-      })}
-    </View>
-  );
-};
-
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function TracksScreen() {
-  const [isPlaying, setIsPlaying] = useState(false);
   const heroFade = useRef(new Animated.Value(0)).current;
   const heroSlide = useRef(new Animated.Value(-20)).current;
   const { topTracks, loading, timeRange, setTimeRange } = useSpotify();
@@ -92,12 +32,12 @@ export default function TracksScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [timeRange]);
 
   const topTrack = topTracks[0];
-  const heroTitle = topTrack?.name ?? "—";
-  const heroArtist = topTrack?.artists?.map((a) => a.name).join(", ") ?? "—";
-  const heroAlbumArt = topTrack?.album?.images?.[1]?.url ?? topTrack?.album?.images?.[0]?.url;
+  const heroTitle = topTrack?.name ?? "No top track";
+  const heroArtist = topTrack?.artists?.[0]?.name ?? "Unknown Artist";
+  const heroAlbumArt = topTrack?.album?.images?.[0]?.url;
 
   return (
     <SafeAreaView style={styles.Container}>
@@ -130,26 +70,9 @@ export default function TracksScreen() {
         <Text style={styles.heroArtist}>{heroArtist}</Text>
         {topTrack && (
           <Text style={styles.heroPlays}>
-            {formatDuration(topTrack.duration_ms)} · Popularity {topTrack.popularity}
+            {formatDuration(topTrack.duration_ms)}
           </Text>
         )}
-
-        <Waveform isPlaying={isPlaying} />
-
-        <TouchableOpacity
-          style={[styles.playBtn, isPlaying && styles.playBtnActive]}
-          onPress={() => setIsPlaying((p) => !p)}
-          activeOpacity={0.85}
-        >
-          {isPlaying ? (
-            <View style={styles.pauseIcon}>
-              <View style={styles.pauseBar} />
-              <View style={styles.pauseBar} />
-            </View>
-          ) : (
-            <View style={styles.playIcon} />
-          )}
-        </TouchableOpacity>
       </Animated.View>
 
       <View style={{ height: 410 }}>

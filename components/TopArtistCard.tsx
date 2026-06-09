@@ -19,7 +19,7 @@ export default function TopArtistsCard({ artists = [], loading = false }: TopArt
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="small" color="#1DB954" />
+        <ActivityIndicator size="small" color="#8B5CF6" />
       </View>
     );
   }
@@ -33,7 +33,7 @@ export default function TopArtistsCard({ artists = [], loading = false }: TopArt
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <Text style={styles.emptyText}>
-          Connect Spotify to see your top 3 artists!
+          No top artists available yet.
         </Text>
       </View>
     );
@@ -84,7 +84,7 @@ export default function TopArtistsCard({ artists = [], loading = false }: TopArt
 
         <View style={styles.activeCircleOuter}>
           <LinearGradient
-            colors={['#1DB954', '#4A90D9', '#8B5CF6']}
+            colors={['#FF5A09', '#EC4899', '#8B5CF6']}
             style={styles.activeCircleGradient}
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
 
   rankBoxGreen: {
-    backgroundColor: '#1DB954',
+    backgroundColor: '#8B5CF6',
     paddingHorizontal: 22,
     paddingVertical: 8,
     borderRadius: 10,
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
 
   activeGenre: {
-    color: '#1DB954',
+    color: '#8B5CF6',
     fontSize: 11,
     marginTop: 3,
   },

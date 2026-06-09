@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -13,34 +14,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSpotify } from "@/contexts/SpotifyContext";
 
 export default function ProfileScreen() {
-  const { token, userProfile, logout, promptAsync, ready } = useSpotify();
-
-  if (!token) {
-    return (
-      <SafeAreaView style={[styles.safe, styles.center]}>
-        <Ionicons name="lock-closed-outline" size={48} color="#6b7280" style={{ marginBottom: 16 }} />
-        <Text style={styles.loginTitle}>Spotify Connection Required</Text>
-        <Text style={styles.loginSubtitle}>
-          Please connect your Spotify account to view your profile.
-        </Text>
-        <TouchableOpacity
-          style={[styles.loginButton, !ready && styles.loginButtonDisabled]}
-          onPress={() => ready && promptAsync()}
-          disabled={!ready}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="musical-note" size={20} color="white" />
-          <Text style={styles.loginButtonText}>Connect Spotify</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
+  const { userProfile, logout } = useSpotify();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [aboutModalVisible, setAboutModalVisible] = useState(false);
 
   const avatarUrl = userProfile?.images?.[1]?.url ?? userProfile?.images?.[0]?.url;
   const displayName = userProfile?.display_name ?? "Spotify User";
   const followersCount = userProfile?.followers?.total ?? 0;
   const productTier = userProfile?.product ?? "free";
-  const country = userProfile?.country ?? "US";
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -60,9 +41,6 @@ export default function ProfileScreen() {
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{productTier.toUpperCase()}</Text>
             </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{country}</Text>
-            </View>
           </View>
           
           <Text style={styles.followersText}>
@@ -73,7 +51,11 @@ export default function ProfileScreen() {
         {/* Options Card List */}
         <View style={styles.optionsCard}>
           {/* Data & Privacy */}
-          <TouchableOpacity style={styles.optionRow} activeOpacity={0.7}>
+          <TouchableOpacity 
+            style={styles.optionRow} 
+            activeOpacity={0.7}
+            onPress={() => setModalVisible(true)}
+          >
             <View style={styles.optionLeft}>
               <Ionicons name="shield-outline" size={22} color="#ffffff" style={styles.optionIcon} />
               <Text style={styles.optionText}>Data & Privacy</Text>
@@ -83,11 +65,15 @@ export default function ProfileScreen() {
 
           <View style={styles.divider} />
 
-          {/* About Statify */}
-          <TouchableOpacity style={styles.optionRow} activeOpacity={0.7}>
+          {/* About Wrap Spotify */}
+          <TouchableOpacity 
+            style={styles.optionRow} 
+            activeOpacity={0.7}
+            onPress={() => setAboutModalVisible(true)}
+          >
             <View style={styles.optionLeft}>
               <Ionicons name="information-circle-outline" size={22} color="#ffffff" style={styles.optionIcon} />
-              <Text style={styles.optionText}>About Statify</Text>
+              <Text style={styles.optionText}>About Wrap Spotify</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#6b7280" />
           </TouchableOpacity>
@@ -98,6 +84,110 @@ export default function ProfileScreen() {
           <Text style={styles.disconnectText}>Disconnect Spotify</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="shield-checkmark" size={24} color="#1DB954" />
+              <Text style={styles.modalTitle}>Data & Privacy Policy</Text>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalBody}>
+              <Text style={styles.policyText}>
+                Wrap Spotify values your trust and is built with data transparency and user privacy as core principles.
+              </Text>
+              
+              <View style={styles.policySection}>
+                <Text style={styles.policySubTitle}>1. Zero Data Retention</Text>
+                <Text style={styles.policyBody}>
+                  Wrap Spotify does not store, collect, or transmit any of your personal music data or Spotify account credentials. All analytical calculations (genres, top artists, tracks) are computed completely on your local device.
+                </Text>
+              </View>
+
+              <View style={styles.policySection}>
+                <Text style={styles.policySubTitle}>2. Spotify API Authentication</Text>
+                <Text style={styles.policyBody}>
+                  Authentication is handled securely using Spotify's official OAuth mechanism. We only request read-only scopes (`user-top-read`, `user-read-recently-played`, `user-library-read`) to retrieve and display statistics.
+                </Text>
+              </View>
+
+              <View style={styles.policySection}>
+                <Text style={styles.policySubTitle}>3. Local Session Control</Text>
+                <Text style={styles.policyBody}>
+                  Your access credentials are kept strictly in your local device storage. To terminate your session and clear all local data, simply click "Disconnect Spotify" on the profile screen.
+                </Text>
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalCloseText}>Got It</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* About Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={aboutModalVisible}
+        onRequestClose={() => setAboutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="information-circle" size={24} color="#1DB954" />
+              <Text style={styles.modalTitle}>About Wrap Spotify</Text>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalBody}>
+              <Text style={styles.policyText}>
+                Wrap Spotify provides beautiful, personalized listening analytics, helping you explore your music trends year-round.
+              </Text>
+              
+              <View style={styles.policySection}>
+                <Text style={styles.policySubTitle}>Independent Companion App</Text>
+                <Text style={styles.policyBody}>
+                  Wrap Spotify is built independently. It is not associated, affiliated, authorized, endorsed by, or in any way officially connected with Spotify AB, Spotify USA Inc., or any of their subsidiaries.
+                </Text>
+              </View>
+
+              <View style={styles.policySection}>
+                <Text style={styles.policySubTitle}>Secure Local Computation</Text>
+                <Text style={styles.policyBody}>
+                  Your statistics are processed strictly on your device using temporary access tokens fetched directly from Spotify's secure APIs. No servers are operated to collect, store, or transmit your credentials.
+                </Text>
+              </View>
+
+              <View style={styles.policySection}>
+                <Text style={styles.policySubTitle}>Trademarks Notice</Text>
+                <Text style={styles.policyBody}>
+                  The name "Spotify" and its official logos are registered trademarks owned by Spotify AB. Use of these names does not imply any affiliation with or endorsement by them.
+                </Text>
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setAboutModalVisible(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalCloseText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -242,5 +332,82 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     fontSize: 15,
     fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: "#161b22",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#21262d",
+    width: "100%",
+    maxHeight: "80%",
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 18,
+  },
+  modalTitle: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  policyText: {
+    color: "#e5e7eb",
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  policySection: {
+    marginBottom: 16,
+  },
+  policySubTitle: {
+    color: "#1DB954",
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 6,
+  },
+  policyBody: {
+    color: "#9ca3af",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  modalCloseButton: {
+    backgroundColor: "#21262d",
+    height: 48,
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#30363d",
+  },
+  modalCloseText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  privacyLink: {
+    color: "#1DB954",
+    textDecorationLine: "underline",
+    fontWeight: "600",
+  },
+  flex1: {
+    flex: 1,
   },
 });

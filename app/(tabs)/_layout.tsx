@@ -1,14 +1,19 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { View } from "react-native";
+import { Image } from "expo-image";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useSpotify } from "@/contexts/SpotifyContext";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { userProfile } = useSpotify();
+  const avatarUrl = userProfile?.images?.[1]?.url ?? userProfile?.images?.[0]?.url;
 
   return (
     <Tabs
@@ -83,13 +88,33 @@ export default function TabLayout() {
       name="profile"
       options={{
         title: "Profile",
-        tabBarIcon: ({ color, focused }) => (
-          <Ionicons
-            name={focused ? "person" : "person-outline"}
-            size={28}
-            color={color}
-          />
-        ),
+        tabBarIcon: ({ color, focused }) => {
+          if (avatarUrl) {
+            return (
+              <View style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                overflow: 'hidden',
+                borderWidth: focused ? 2 : 1,
+                borderColor: focused ? Colors[colorScheme ?? "light"].tint : color,
+              }}>
+                <Image
+                  source={{ uri: avatarUrl }}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
+                />
+              </View>
+            );
+          }
+          return (
+            <Ionicons
+              name={focused ? "person" : "person-outline"}
+              size={28}
+              color={color}
+            />
+          );
+        },
       }}
       />
 

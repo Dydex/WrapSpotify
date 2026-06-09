@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "StatsSpotify",
-    "slug": "StatsSpotify",
+    "name": "Wrap Spotify",
+    "slug": "wrap-spotify",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "statsspotify",
+    "scheme": "wrapspotify",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.StatsSpotify"
+      "package": "com.anonymous.WrapSpotify"
     },
     "web": {
       "output": "static",
