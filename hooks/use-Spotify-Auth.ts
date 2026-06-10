@@ -11,17 +11,12 @@ if (!CLIENT_ID) {
   console.warn('Warning: EXPO_PUBLIC_SPOTIFY_CLIENT_ID is not defined in the environment variables!');
 }
 
-// Platform-specific redirect URIs:
-// - Web: http://localhost:8081 (Spotify allows http://localhost for dev)
-// - Native dev build: wrapspotify://callback (custom scheme)
-//
-// ADD BOTH to Spotify Dashboard → Redirect URIs:
-//   http://localhost:8081
-//   wrapspotify://callback
-const REDIRECT_URI = Platform.select({
-  web: 'http://127.0.0.1:8081',
-  default: 'wrapspotify://callback',
-})!;
+// Generate the redirect URI dynamically so that it works across Web, 
+// custom Dev Builds, and Expo Go.
+const REDIRECT_URI = AuthSession.makeRedirectUri({
+  scheme: 'wrapspotify',
+  path: 'redirect',
+});
 
 const SCOPES = [
   'user-top-read',
@@ -36,6 +31,7 @@ export function useSpotifyAuth() {
 
   // Load token on mount
   useEffect(() => {
+    console.log('Spotify Redirect URI:', REDIRECT_URI);
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         const saved = window.localStorage.getItem('spotify_token');

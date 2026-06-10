@@ -25,7 +25,7 @@ export default function HomeScreen() {
 
   const displayName = userProfile?.display_name ?? "Music Lover";
   const firstName = displayName.split(" ")[0];
-  const profileImage = userProfile?.images?.[0]?.url;
+  const profileImage = userProfile?.images?.[1]?.url ?? userProfile?.images?.[0]?.url;
 
   // Derive top genre from artists
   const genreCounts: Record<string, number> = {};
@@ -59,7 +59,7 @@ export default function HomeScreen() {
               contentFit="cover"
             />
           ) : (
-            <Ionicons name="person-circle" size={45} />
+            <Ionicons name="person" size={22} color="white" />
           )}
         </LinearGradient>
       </View>
@@ -120,7 +120,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={{ height: 300 }}>
+      <View style={{ height: 320 }}>
         <TopTracksList
           tracks={topTracks.slice(0, 5)}
           loading={loading}

@@ -21,8 +21,8 @@ interface TopGenresChartProps {
 export default function TopGenresChart({ genres = [] }: TopGenresChartProps) {
   if (genres.length === 0) return null;
 
-  const radius = 60;
-  const strokeWidth = 12;
+  const radius = 65;
+  const strokeWidth = 13;
   const circumference = 2 * Math.PI * radius;
   let runningPercent = 0;
 
@@ -30,7 +30,7 @@ export default function TopGenresChart({ genres = [] }: TopGenresChartProps) {
 
   return (
     <View style={styles.container}>
-      {/* Donut Chart Card */}
+      {/* Donut Chart Card (Stacked layout with grid legend) */}
       <View style={styles.chartCard}>
         <View style={styles.chartWrapper}>
           <Svg width={160} height={160} style={styles.svg}>
@@ -71,48 +71,27 @@ export default function TopGenresChart({ genres = [] }: TopGenresChartProps) {
           
           {/* Donut Inner Text */}
           <View style={styles.innerLabelContainer}>
-            <Ionicons name="musical-note" size={24} color="#6b7280" style={styles.innerIcon} />
+            <Ionicons name="musical-note" size={20} color="#6b7280" style={styles.innerIcon} />
             <Text style={styles.innerTextTitle} numberOfLines={1}>
               {topGenre?.name ?? "N/A"}
             </Text>
-            <Text style={styles.innerTextSubtitle}>Your #1 genre</Text>
           </View>
         </View>
 
-        {/* Legend List */}
+        {/* Legend List (Grid Wrap layout below chart) */}
         <View style={styles.legendContainer}>
           {genres.map((item, index) => (
-            <View key={index} style={styles.legendRow}>
-              <View style={styles.legendLeft}>
-                <View style={[styles.dot, { backgroundColor: item.color }]} />
-                <Text style={styles.legendLabel}>{item.name}</Text>
+            <View key={index} style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: item.color }]} />
+              <View style={styles.legendTextWrapper}>
+                <Text style={styles.legendLabel} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <Text style={styles.legendPercentage}>{item.percentage}%</Text>
               </View>
-              <Text style={styles.legendPercentage}>{item.percentage}%</Text>
             </View>
           ))}
         </View>
-      </View>
-
-      {/* Grid Cards */}
-      <View style={styles.gridContainer}>
-        {genres.slice(0, 4).map((item, index) => (
-          <View key={index} style={[styles.gridCard, { backgroundColor: item.color }]}>
-            {/* Subtle Top-Right Emoji */}
-            <Text style={styles.gridEmoji}>{item.emoji}</Text>
-            
-            <View style={styles.gridCardContent}>
-              <Text style={styles.gridName} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text style={styles.gridPercent}>
-                {item.percentage}%
-              </Text>
-              <Text style={styles.gridArtist} numberOfLines={1}>
-                Top artist: {item.topArtist}
-              </Text>
-            </View>
-          </View>
-        ))}
       </View>
     </View>
   );
@@ -121,15 +100,15 @@ export default function TopGenresChart({ genres = [] }: TopGenresChartProps) {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+    marginTop: 16,
   },
   chartCard: {
     backgroundColor: "#161b22",
     borderRadius: 20,
-    padding: 24,
+    padding: 20,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#21262d",
-    marginBottom: 24,
   },
   chartWrapper: {
     position: "relative",
@@ -137,15 +116,15 @@ const styles = StyleSheet.create({
     height: 160,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   svg: {
     position: "absolute",
   },
   innerLabelContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -154,87 +133,49 @@ const styles = StyleSheet.create({
   },
   innerTextTitle: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     textAlign: "center",
     width: 90,
   },
-  innerTextSubtitle: {
-    color: "#6b7280",
-    fontSize: 10,
-    marginTop: 2,
-  },
   legendContainer: {
     width: "100%",
-    gap: 12,
-  },
-  legendRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  legendLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  legendLabel: {
-    color: "#e5e7eb",
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  legendPercentage: {
-    color: "#e5e7eb",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 12,
+    rowGap: 12,
+    columnGap: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#21262d",
+    paddingTop: 16,
   },
-  gridCard: {
-    width: (width - 52) / 2,
-    borderRadius: 20,
-    padding: 16,
-    height: 125,
-    position: "relative",
-    overflow: "hidden",
+  legendItem: {
+    width: (width - 72) / 2, // 2 equal columns with padding accounted for
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
-  gridEmoji: {
-    position: "absolute",
-    right: 12,
-    top: 12,
-    fontSize: 24,
-    opacity: 0.25,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  gridCardContent: {
+  legendTextWrapper: {
     flex: 1,
+    flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
-  gridName: {
-    color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "600",
-    opacity: 0.9,
-    width: "80%",
-  },
-  gridPercent: {
-    color: "#ffffff",
-    fontSize: 28,
-    fontWeight: "700",
-    marginVertical: 4,
-  },
-  gridArtist: {
-    color: "#ffffff",
-    fontSize: 10,
+  legendLabel: {
+    color: "#e5e7eb",
+    fontSize: 12,
     fontWeight: "500",
-    opacity: 0.8,
+    flex: 1,
+    marginRight: 4,
+  },
+  legendPercentage: {
+    color: "#6b7280",
+    fontSize: 11,
+    fontWeight: "600",
   },
 });

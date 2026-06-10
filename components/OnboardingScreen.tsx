@@ -8,6 +8,7 @@ import {
   Dimensions,
   Modal,
   ScrollView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,7 +33,7 @@ const INTRO_SLIDES = [
   },
   {
     title: "Time Travel",
-    description: "Explore your top tracks and artists across different time periods—from 4 weeks to multiple years.",
+    description: "Explore your top tracks and artists across different time periods.",
     icon: "time",
     colors: ["#121824", "#0e263d"], // Deep blue/ocean gradient
     accent: "#3B82F6",
@@ -40,7 +41,7 @@ const INTRO_SLIDES = [
 ];
 
 export default function OnboardingScreen() {
-  const { promptAsync, ready, token } = useSpotify();
+  const { promptAsync, ready, token, redirectUri } = useSpotify();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   
@@ -102,11 +103,8 @@ export default function OnboardingScreen() {
           <View style={styles.connectContent}>
             {/* Logo area */}
             <View style={styles.logoContainer}>
-              <View style={styles.logoIconBg}>
-                <Ionicons name="musical-notes" size={54} color="#8B5CF6" />
-              </View>
-              <Text style={styles.logoTitle}>Wrap Spotify</Text>
               
+
             </View>
 
             {/* Description */}
@@ -128,6 +126,16 @@ export default function OnboardingScreen() {
               <Ionicons name="musical-note" size={20} color="white" />
               <Text style={styles.connectButtonText}>Connect Spotify</Text>
             </TouchableOpacity>
+
+            {/* {Platform.OS !== 'web' && (
+              <View style={styles.redirectNotice}>
+                <Ionicons name="information-circle" size={14} color="#a3a3a3" style={{ marginTop: 2 }} />
+                <Text style={styles.redirectNoticeText}>
+                  Add this URI to Spotify Developer Dashboard Settings:{"\n"}
+                  <Text style={styles.redirectUriBold}>{redirectUri}</Text>
+                </Text>
+              </View>
+            )} */}
           </View>
         </SafeAreaView>
 
@@ -196,7 +204,6 @@ export default function OnboardingScreen() {
       <SafeAreaView style={styles.safe}>
         {/* Top Header Row */}
         <View style={styles.headerRow}>
-          <Text style={styles.headerLogo}>Wrap Spotify</Text>
           <TouchableOpacity onPress={handleSkip} activeOpacity={0.7} style={styles.skipButton}>
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
@@ -486,5 +493,28 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  redirectNotice: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 24,
+    backgroundColor: "#161b22",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#21262d",
+    padding: 12,
+    alignItems: "flex-start",
+    width: "100%",
+  },
+  redirectNoticeText: {
+    color: "#a3a3a3",
+    fontSize: 11,
+    lineHeight: 16,
+    flex: 1,
+  },
+  redirectUriBold: {
+    color: "#8B5CF6",
+    fontWeight: "bold",
+    fontSize: 11,
   },
 });

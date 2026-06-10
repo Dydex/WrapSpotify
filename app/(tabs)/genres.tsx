@@ -14,8 +14,24 @@ import { useSpotify } from "@/contexts/SpotifyContext";
 import TimeLines from "@/components/TimeLines";
 import TopGenresChart, { type GenreItem } from "@/components/TopGenresChart";
 
-const GENRE_COLORS = ["#1DB954", "#8B5CF6", "#3B82F6", "#EC4899", "#4B5563"];
-const GENRE_EMOJIS = ["🔥", "🎤", "💙", "✨", "🎵"];
+const GENRE_COLORS = [
+  "#1DB954", // Spotify Green
+  "#8B5CF6", // Violet
+  "#3B82F6", // Blue
+  "#EC4899", // Pink
+  "#F59E0B", // Amber/Yellow
+  "#10B981", // Emerald
+  "#EF4444", // Red
+  "#06B6D4", // Cyan
+  "#84CC16", // Lime
+  "#A855F7", // Purple
+  "#F97316", // Orange
+  "#00f2fe", // Bright Cyan
+  "#4facfe", // Bright Blue
+  "#ff0844", // Bright Pink
+  "#ffb199", // Soft Peach
+];
+const GENRE_EMOJIS = ["🔥", "🎤", "💙", "✨", "🎵", "🎸", "🎧", "🎷", "🎹", "🎺", "🥁", "🎻", "🎼", "🌟", "💫"];
 
 export default function GenresScreen() {
   const { topTracks, topArtists, loading, timeRange, setTimeRange } = useSpotify();
@@ -38,6 +54,23 @@ export default function GenresScreen() {
     ]).start();
   }, [timeRange]);
 
+  // Helper to format genre name properly
+  const formatGenreName = (genre: string): string => {
+    let name = genre
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+    if (name.toLowerCase() === "afrobeat" || name.toLowerCase() === "afrobeats") {
+      name = "Afrobeats";
+    } else if (name.startsWith("Uk ")) {
+      name = "UK " + name.slice(3);
+    } else if (name === "Uk") {
+      name = "UK";
+    }
+    return name;
+  };
+
   // Create a map of artist ID to genres
   const artistGenreMap: Record<string, string[]> = {};
   topArtists.forEach((artist) => {
@@ -48,58 +81,40 @@ export default function GenresScreen() {
 
   const genreCounts: Record<string, { count: number; topArtist: string }> = {};
 
-  // Aggregate genres from topTracks (weighting genres by track play frequency)
+  // 1. Primary Source: Aggregate genres directly from all topArtists
+  topArtists.forEach((artist) => {
+    if (!artist.genres) return;
+    artist.genres.forEach((genre) => {
+      const formattedName = formatGenreName(genre);
+      if (!genreCounts[formattedName]) {
+        genreCounts[formattedName] = {
+          count: 0,
+          topArtist: artist.name,
+        };
+      }
+      genreCounts[formattedName].count += 3; // base weight for top artists
+    });
+  });
+
+  // 2. Secondary Source: Aggregate genres from topTracks to add active listening weight
   topTracks.forEach((track) => {
     if (!track.artists) return;
     track.artists.forEach((trackArtist) => {
       const genres = artistGenreMap[trackArtist.id];
       if (genres) {
         genres.forEach((genre) => {
-          let formattedName = genre
-            .split(" ")
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" ");
-
-          if (formattedName.toLowerCase() === "afrobeat" || formattedName.toLowerCase() === "afrobeats") {
-            formattedName = "Afrobeats";
-          }
-
+          const formattedName = formatGenreName(genre);
           if (!genreCounts[formattedName]) {
             genreCounts[formattedName] = {
               count: 0,
               topArtist: trackArtist.name,
             };
           }
-          genreCounts[formattedName].count += 1;
+          genreCounts[formattedName].count += 1; // active listening weight
         });
       }
     });
   });
-
-  // Fallback to topArtists direct aggregation if topTracks yields no genre data
-  if (Object.keys(genreCounts).length === 0) {
-    topArtists.forEach((artist) => {
-      if (!artist.genres) return;
-      artist.genres.forEach((genre) => {
-        let formattedName = genre
-          .split(" ")
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" ");
-
-        if (formattedName.toLowerCase() === "afrobeat" || formattedName.toLowerCase() === "afrobeats") {
-          formattedName = "Afrobeats";
-        }
-
-        if (!genreCounts[formattedName]) {
-          genreCounts[formattedName] = {
-            count: 0,
-            topArtist: artist.name,
-          };
-        }
-        genreCounts[formattedName].count += 1;
-      });
-    });
-  }
 
   const sortedGenres = Object.entries(genreCounts)
     .map(([name, data]) => ({
@@ -113,29 +128,14 @@ export default function GenresScreen() {
 
   let displayedGenres: GenreItem[] = [];
   if (sortedGenres.length > 0) {
-    const top4 = sortedGenres.slice(0, 4);
-    const othersList = sortedGenres.slice(4);
-
-    displayedGenres = top4.map((g, idx) => ({
+    displayedGenres = sortedGenres.slice(0, 13).map((g, idx) => ({
       name: g.name,
       count: g.count,
       percentage: totalPoints > 0 ? Math.round((g.count / totalPoints) * 100) : 0,
       topArtist: g.topArtist,
-      color: GENRE_COLORS[idx] || "#4B5563",
-      emoji: GENRE_EMOJIS[idx] || "🎵",
+      color: GENRE_COLORS[idx % GENRE_COLORS.length],
+      emoji: GENRE_EMOJIS[idx % GENRE_EMOJIS.length] || "🎵",
     }));
-
-    if (othersList.length > 0) {
-      const othersCount = othersList.reduce((acc, g) => acc + g.count, 0);
-      displayedGenres.push({
-        name: "Others",
-        count: othersCount,
-        percentage: totalPoints > 0 ? Math.round((othersCount / totalPoints) * 100) : 0,
-        topArtist: othersList[0]?.topArtist || "Various Artists",
-        color: GENRE_COLORS[4],
-        emoji: GENRE_EMOJIS[4],
-      });
-    }
   }
 
   // Adjust percentages so they sum to exactly 100% if needed
@@ -147,16 +147,13 @@ export default function GenresScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
         {/* Header */}
         <Text style={styles.headerTitle}>Your Music Taste</Text>
 
-        {/* Tabs */}
-        <TimeLines activeRange={timeRange} onRangeChange={setTimeRange} />
-
         {loading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color="#1DB954" />
+            <ActivityIndicator size="large" color="#8B5CF6" />
           </View>
         ) : displayedGenres.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -164,11 +161,17 @@ export default function GenresScreen() {
             <Text style={styles.emptyText}>No genre data available. Try playing more music!</Text>
           </View>
         ) : (
-          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+          <Animated.View 
+            style={[
+              styles.contentContainer,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+            ]}
+          >
+            <TimeLines activeRange={timeRange} onRangeChange={setTimeRange} />
             <TopGenresChart genres={displayedGenres} />
           </Animated.View>
         )}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -178,9 +181,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0d1117",
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+  container: {
+    paddingHorizontal: 10,
+  
+  },
+  contentContainer: {
+    gap: 16,
+    paddingBottom: 16,
   },
   headerTitle: {
     color: "#ffffff",
