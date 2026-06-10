@@ -6,10 +6,16 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "wrapspotify",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0d1117"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "userInterfaceStyle": "dark"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +24,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.WrapSpotify"
+      "package": "com.anonymous.WrapSpotify",
+      "userInterfaceStyle": "dark"
     },
     "web": {
       "output": "static",
