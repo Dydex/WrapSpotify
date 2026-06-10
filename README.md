@@ -4,6 +4,18 @@ Wrap Spotify is a premium, secure, and beautiful client-side React Native / Expo
 
 ---
 
+## 📲 Try It Out
+
+| | Link |
+|:---|:---|
+| 🖥️ **Live Demo** | [Open in Appetize.io](https://appetize.io/app/b_2jmekv4fnsac2zc23om6my4omi) *(Desktop/Laptop browsers only)* |
+| 📥 **Download APK** | [Download for Android (v1.0.0)](https://github.com/Dydex/WrapSpotify/releases/download/v1.0.0/application-7deb534f-664d-45b0-8931-5635dcb6d248.apk) |
+
+> [!NOTE]
+> The Appetize.io live demo can only be viewed on **laptops and desktops**. It will not load on mobile browsers. To try the app on your Android phone, download the APK directly using the link above.
+
+---
+
 ## ✨ Key Features
 
 *   **🔒 Secure OAuth Authentication**: Logs in directly via Spotify's official PKCE-based Web Auth Flow. No credentials or tokens are ever saved or transmitted to a third-party server.
